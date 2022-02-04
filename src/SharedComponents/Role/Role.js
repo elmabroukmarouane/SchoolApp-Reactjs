@@ -1,18 +1,20 @@
 import React, { Component } from "react";
 import Modal from "react-bootstrap/Modal";
-import LevelService from "../../Business/Services/LevelService/LevelService";
+import RoleService from "../../Business/Services/RoleService/RoleService";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCaretSquareUp, faCaretSquareDown } from "@fortawesome/free-regular-svg-icons";
 import AuthenticationService from '../../Business/Services/AuthenticationService/AuthenticationService';
 
-export class Level extends Component {
+export class Role extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            levels: [],
-            level: {
+            Roles: [],
+            Role: {
                 id: 0,
-                levelname: "",
+                role: 1,
+                title: "",
+                description: "",
                 createdby: "",
                 createdate: "",
                 updatedby: "",
@@ -21,19 +23,19 @@ export class Level extends Component {
             },
             currentUser: AuthenticationService.getCurrentUser(),
             modalTitle: "",
-            selectedIndexLevel: 0,
+            selectedIndexRole: 0,
             showModal: false,
             filterValue: "",
-            levelsWithoutFilter: []
+            RolesWithoutFilter: []
         }
     }
 
     get() {
-        LevelService.get()
+        RoleService.get()
             .then((result) => {
                 this.setState({
-                    levels: result.data,
-                    levelsWithoutFilter: result.data
+                    Roles: result.data,
+                    RolesWithoutFilter: result.data
                 })
             })
             .catch((ex) => {
@@ -47,38 +49,59 @@ export class Level extends Component {
         this.get();
     }
 
+    getRoleTitle(role) {
+        switch (role) {
+            case 1:
+                return "SUPER_ADMIN";
+            case 2:
+                return "ADMIN";
+            case 3:
+                return "PROFESSOR";
+            case 4:
+                return "STUDENT";
+            case 5:
+                return "USER";
+            default:
+                break;
+        }
+    }
+
     filterTableByAll = (e) => {
         this.setState({ filterValue: e.target.value });
         if (e.target.value === "") {
-            this.setState({ levels: this.state.levelsWithoutFilter });
+            this.setState({ Roles: this.state.RolesWithoutFilter });
         } else {
-            var filteredData = this.state.levelsWithoutFilter.filter(
+            var filteredData = this.state.RolesWithoutFilter.filter(
                 (el) => {
                     return el.id.toString().toLowerCase().indexOf(e.target.value.toString().toLowerCase()) > -1
-                        || el.levelname.toString().toLowerCase().indexOf(e.target.value.toString().toLowerCase()) > -1;
+                        || el.role.toString().toLowerCase().indexOf(e.target.value.toString().toLowerCase()) > -1
+                        || el.title.toString().toLowerCase().indexOf(e.target.value.toString().toLowerCase()) > -1
+                        || el.description.toString().toLowerCase().indexOf(e.target.value.toString().toLowerCase()) > -1;
                 }
             );
-            this.setState({ levels: filteredData });
+            this.setState({ Roles: filteredData });
         }
     }
 
     filterTableByField = (e, field) => {
         this.setState({ filterValue: e.target.value });
         if (e.target.value === "") {
-            this.setState({ levels: this.state.levelsWithoutFilter });
+            this.setState({ Roles: this.state.RolesWithoutFilter });
         } else {
-            var filteredData = this.state.levelsWithoutFilter.filter(
+            var filteredData = this.state.RolesWithoutFilter.filter(
                 (el) => {
-                    if (field === "id") return el.id.toString().toLowerCase().indexOf(e.target.value.toString().toLowerCase()) > -1
-                    else return el.levelname.toString().toLowerCase().indexOf(e.target.value.toString().toLowerCase()) > -1;
+                    if (field === "id") return el.id.toString().toLowerCase().indexOf(e.target.value.toString().toLowerCase()) > -1;
+                    else if (field === "role") return el.role.toString().toLowerCase().indexOf(e.target.value.toString().toLowerCase()) > -1;
+                    else if (field === "title") return el.title.toString().toLowerCase().indexOf(e.target.value.toString().toLowerCase()) > -1;
+                    else return el.description.toString().toLowerCase().indexOf(e.target.value.toString().toLowerCase()) > -1;
                 }
             );
-            this.setState({ levels: filteredData });
+            this.setState({ Roles: filteredData });
         }
     }
 
     sortResult(prop, asc) {
-        var sortedData = this.state.levelsWithoutFilter.sort(function (a, b) {
+        var sortedData = this.state.RolesWithoutFilter.sort(function (a, b) {
             if (asc) {
                 return (a[prop] > b[prop]) ? 1 : ((a[prop] < b[prop]) ? -1 : 0);
             }
@@ -87,7 +110,7 @@ export class Level extends Component {
             }
         });
 
-        this.setState({ levels: sortedData });
+        this.setState({ Roles: sortedData });
     }
 
     hideModal() {
@@ -96,18 +119,32 @@ export class Level extends Component {
         });
     }
 
-    bindLevelName = (e) => {
-        let levelClone = this.state.level;
-        levelClone.levelname = e.target.value;
-        this.setState({ level: levelClone });
+    bindRole = (e) => {
+        let RoleClone = this.state.Role;
+        RoleClone.role = e.target.value;
+        this.setState({ Role: RoleClone });
+    }
+
+    bindTitle = (e) => {
+        let RoleClone = this.state.Role;
+        RoleClone.title = e.target.value;
+        this.setState({ Role: RoleClone });
+    }
+
+    bindDescription = (e) => {
+        let RoleClone = this.state.Role;
+        RoleClone.description = e.target.value;
+        this.setState({ Role: RoleClone });
     }
 
     add() {
         this.setState({
-            modalTitle: "Add Level",
-            level: {
+            modalTitle: "Add Role",
+            Role: {
                 id: 0,
-                levelname: "",
+                role: 0,
+                title: "",
+                description: "",
                 createdby: this.state.currentUser.person.firstname + " " + this.state.currentUser.person.lastname,
                 createdate: "",
                 updatedby: this.state.currentUser.person.firstname + " " + this.state.currentUser.person.lastname,
@@ -119,9 +156,9 @@ export class Level extends Component {
     }
 
     create() {
-        LevelService.Add(this.state.level)
+        RoleService.Add(this.state.Role)
             .then((result) => {
-                // this.state.levels.push(result.data.Entity);
+                // this.state.Roles.push(result.data.Entity);
                 this.get();
                 this.setState({
                     showModal: false
@@ -138,32 +175,34 @@ export class Level extends Component {
             });
     }
 
-    edit(selectedLevel) {
-        let levelClone = {
-            id: this.state.levels[selectedLevel].id,
-            levelname: this.state.levels[selectedLevel].levelname,
-            createdby: this.state.levels[selectedLevel].createdby,
-            createdate: this.state.levels[selectedLevel].createdate,
+    edit(selectedRole) {
+        let RoleClone = {
+            id: this.state.Roles[selectedRole].id,
+            role: this.state.Roles[selectedRole].role,
+            title: this.state.Roles[selectedRole].title,
+            description: this.state.Roles[selectedRole].description,
+            createdby: this.state.Roles[selectedRole].createdby,
+            createdate: this.state.Roles[selectedRole].createdate,
             updatedby: this.state.currentUser.person.firstname + " " + this.state.currentUser.person.lastname,
-            updatedate: this.state.levels[selectedLevel].updatedate,
-            users: this.state.levels[selectedLevel].users
+            updatedate: this.state.Roles[selectedRole].updatedate,
+            users: this.state.Roles[selectedRole].users
         };
         this.setState({
-            modalTitle: "Edit Level",
-            level: levelClone,
-            selectedIndexLevel: selectedLevel,
+            modalTitle: "Edit Role",
+            Role: RoleClone,
+            selectedIndexRole: selectedRole,
             showModal: true
         });
     }
 
     update() {
-        LevelService.Update(this.state.level)
+        RoleService.Update(this.state.Role)
             .then((result) => {
-                // let levelsClone = this.state.levels;
-                // levelsClone[this.state.selectedIndexLevel] = result.data.Entity;
+                // let RolesClone = this.state.Roles;
+                // RolesClone[this.state.selectedIndexRole] = result.data.Entity;
                 this.get();
                 this.setState({
-                    // levels: levelsClone,
+                    // Roles: RolesClone,
                     showModal: false
                 });
                 alert(result.data.Message);
@@ -175,16 +214,16 @@ export class Level extends Component {
             });
     }
 
-    delete(selectedLevel) {
+    delete(selectedRole) {
         if (window.confirm('Are you sure ?')) {
-            LevelService.Delete(this.state.levels[selectedLevel].id)
+            RoleService.Delete(this.state.Roles[selectedRole].id)
                 .then((result) => {
-                    // let selectedLevelToDelete = this.state.levels[selectedLevel];
-                    // let levelsClone = this.state.levels.filter(function (ele) {
-                    //     return ele.id !== selectedLevelToDelete.id;
+                    // let selectedRoleToDelete = this.state.Roles[selectedRole];
+                    // let RolesClone = this.state.Roles.filter(function (ele) {
+                    //     return ele.id !== selectedRoleToDelete.id;
                     // });
                     // this.setState({
-                    //     levels: levelsClone
+                    //     Roles: RolesClone
                     // });
                     this.get();
                     alert(result.data.Message);
@@ -232,25 +271,31 @@ export class Level extends Component {
                             <thead>
                                 <tr>
                                     <th>ID <FontAwesomeIcon icon={faCaretSquareUp} className="cusorsFilter" onClick={() => this.sortResult("id", true)} />  <FontAwesomeIcon icon={faCaretSquareDown} className="cusorsFilter" onClick={() => this.sortResult("id", false)} /></th>
-                                    <th>Level Name  <FontAwesomeIcon icon={faCaretSquareUp} className="cusorsFilter" onClick={() => this.sortResult("levelname", true)} />  <FontAwesomeIcon icon={faCaretSquareDown} className="cusorsFilter" onClick={() => this.sortResult("levelname", false)} /></th>
+                                    <th>Role  <FontAwesomeIcon icon={faCaretSquareUp} className="cusorsFilter" onClick={() => this.sortResult("role", true)} />  <FontAwesomeIcon icon={faCaretSquareDown} className="cusorsFilter" onClick={() => this.sortResult("role", false)} /></th>
+                                    <th>Title  <FontAwesomeIcon icon={faCaretSquareUp} className="cusorsFilter" onClick={() => this.sortResult("title", true)} />  <FontAwesomeIcon icon={faCaretSquareDown} className="cusorsFilter" onClick={() => this.sortResult("title", false)} /></th>
+                                    <th>Description  <FontAwesomeIcon icon={faCaretSquareUp} className="cusorsFilter" onClick={() => this.sortResult("description", true)} />  <FontAwesomeIcon icon={faCaretSquareDown} className="cusorsFilter" onClick={() => this.sortResult("description", false)} /></th>
                                     <th>Actions</th>
                                 </tr>
                                 <tr>
                                     <th>
                                         <input type="text" className="form-control" onChange={(e) => this.filterTableByField(e, "id")} />
                                     </th>
-                                    <th><input type="text" className="form-control" onChange={(e) => this.filterTableByField(e, "levelname")} /></th>
+                                    <th><input type="text" className="form-control" onChange={(e) => this.filterTableByField(e, "role")} /></th>
+                                    <th><input type="text" className="form-control" onChange={(e) => this.filterTableByField(e, "title")} /></th>
+                                    <th><input type="text" className="form-control" onChange={(e) => this.filterTableByField(e, "description")} /></th>
                                     <th></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {
-                                    this.state.levels.length > 0
-                                        ? this.state.levels.map(
-                                            (level, index) =>
+                                    this.state.Roles.length > 0
+                                        ? this.state.Roles.map(
+                                            (Role, index) =>
                                                 <tr key={index}>
-                                                    <td> {level.id} </td>
-                                                    <td> {level.levelname}</td>
+                                                    <td> {Role.id} </td>
+                                                    <td> {this.getRoleTitle(Role.role)}</td>
+                                                    <td> {Role.title}</td>
+                                                    <td> {Role.description}</td>
                                                     <td>
                                                         <button type="button"
                                                             className="btn btn-warning mr-1"
@@ -287,17 +332,31 @@ export class Level extends Component {
                     </Modal.Header>
                     <Modal.Body>
                         <div className="input-group mb-3">
-                            <span className="input-group-text">Level Name</span>
+                            <span className="input-group-text">Role</span>
+                            <select className="form-control" value={this.state.Role.role} onChange={this.bindRole}>
+                                <option value="1">Super Administrator</option>
+                                <option value="2">Administrator</option>
+                                <option value="3">Professor</option>
+                                <option value="4">Student</option>
+                                <option value="5">User</option>
+                            </select>
+                        </div>
+                        <div className="input-group mb-3">
+                            <span className="input-group-text">Title</span>
                             <input type="text" className="form-control"
-                                value={this.state.level.levelname}
-                                onChange={this.bindLevelName} />
+                                value={this.state.Role.title}
+                                onChange={this.bindTitle} />
+                        </div>
+                        <div className="input-group mb-3">
+                            <span className="input-group-text">Description</span>
+                            <textarea className="form-control" onChange={this.bindDescription} value={this.state.Role.description}></textarea>
                         </div>
                     </Modal.Body>
                     <Modal.Footer>
 
                         <button type="button" className="btn btn-secondary" onClick={() => this.hideModal()}>Close</button>
                         {
-                            this.state.level.id === 0
+                            this.state.Role.id === 0
                                 ? <button type="button" className="btn btn-primary" onClick={() => this.create()}>Save</button>
                                 : <button type="button" className="btn btn-primary" onClick={() => this.update()}>Save</button>
                         }

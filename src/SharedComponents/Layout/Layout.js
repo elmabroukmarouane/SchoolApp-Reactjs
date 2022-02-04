@@ -8,6 +8,7 @@ import { Login } from '../Login/Login';
 import { NotFound } from "../NotFound/NotFound";
 
 import AuthenticationService from "../../Business/Services/AuthenticationService/AuthenticationService";
+import { Role } from "../Role/Role";
 
 
 export class Layout extends Component {
@@ -51,6 +52,9 @@ export class Layout extends Component {
                                         <Link to="/level" className="nav-link text-white">Level</Link>
                                     </div>
                                     <div className="navbar-nav">
+                                        <Link to="/role" className="nav-link text-white">Role</Link>
+                                    </div>
+                                    <div className="navbar-nav">
                                         <Link to="/oops" className="nav-link text-white">Not Found</Link>
                                     </div>
                                     <div className="navbar-nav float-end">
@@ -69,6 +73,9 @@ export class Layout extends Component {
                         </Route>
                         <Route exact path='/level' element={<PrivateRoute />}>
                             <Route exact path='/level' element={<Level />} />
+                        </Route>
+                        <Route exact path='/role' element={<PrivateRoute />}>
+                            <Route exact path='/role' element={<Role />} />
                         </Route>
                         <Route exact path='/login' element={<Login />} />
                         <Route path='*' element={<NotFound />} />
