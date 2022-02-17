@@ -168,8 +168,6 @@ export class Level extends Component {
     create() {
         LevelService.Add(this.state.level)
             .then((result) => {
-                // this.state.levels.push(result.data.Entity);
-                // this.get();
                 if (this.state.connection.state === "Connected") {
                     try {
                         this.state.connection.send("SendToAll", result.data.Entity);
@@ -217,9 +215,6 @@ export class Level extends Component {
     update() {
         LevelService.Update(this.state.level)
             .then((result) => {
-                // let levelsClone = this.state.levels;
-                // levelsClone[this.state.selectedIndexLevel] = result.data.Entity;
-                // this.get();
                 if (this.state.connection.state === "Connected") {
                     try {
                         this.state.connection.invoke("UpdateToAll", result.data.Entity);
@@ -232,7 +227,6 @@ export class Level extends Component {
                     console.log("No connection to server yet.");
                 }
                 this.setState({
-                    // levels: levelsClone,
                     showModal: false
                 });
                 alert(result.data.Message);
@@ -248,14 +242,6 @@ export class Level extends Component {
         if (window.confirm('Are you sure ?')) {
             LevelService.Delete(this.state.levels[selectedLevel].id)
                 .then((result) => {
-                    // let selectedLevelToDelete = this.state.levels[selectedLevel];
-                    // let levelsClone = this.state.levels.filter(function (ele) {
-                    //     return ele.id !== selectedLevelToDelete.id;
-                    // });
-                    // this.setState({
-                    //     levels: levelsClone
-                    // });
-                    // this.get();
                     if (this.state.connection.state === "Connected") {
                         try {
                             this.state.connection.invoke("DeleteToAll", selectedLevel);
