@@ -16,18 +16,20 @@ export class Layout extends Component {
         super(props);
         this.state = {
             location: window.location,
-            isAuthenticated: AuthenticationService.getToken()
+            isAuthenticated: AuthenticationService.getToken(),
+            currentUser: AuthenticationService.getCurrentUser()
         }
     }
 
-    logout(e) {
+    logout(e, id) {
         if (window.confirm('Are you sure to logout ?')) {
             e.preventDefault();
-            AuthenticationService.logout();
+            AuthenticationService.logout(id);
             this.setState({
                 isAuthenticated: null
             });
-            window.history.pushState({}, "", "/login");
+            // window.history.pushState({}, "", "/login");
+            window.location.assign("/login");
         }
     }
 
@@ -58,7 +60,7 @@ export class Layout extends Component {
                                         <Link to="/oops" className="nav-link text-white">Not Found</Link>
                                     </div>
                                     <div className="navbar-nav float-end">
-                                        <span className="nav-link text-white" style={{ cursor: "pointer" }} onClick={(e) => this.logout(e)}>Logout</span>
+                                        <span className="nav-link text-white" style={{ cursor: "pointer" }} onClick={(e) => this.logout(e, this.state.currentUser.id)}>Logout</span>
                                     </div>
                                 </div>
                             </div>
