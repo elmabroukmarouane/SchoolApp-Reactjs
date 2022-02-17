@@ -3,7 +3,10 @@ import Modal from "react-bootstrap/Modal";
 import LevelService from "../../Business/Services/LevelService/LevelService";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCaretSquareUp, faCaretSquareDown } from "@fortawesome/free-regular-svg-icons";
+import { HubConnectionBuilder } from '@microsoft/signalr';
 import AuthenticationService from '../../Business/Services/AuthenticationService/AuthenticationService';
+import { config } from "../../Configurations/config";
+import { LogLevel, HttpTransportType } from '@microsoft/signalr'
 
 export class Level extends Component {
     constructor(props) {
@@ -45,6 +48,50 @@ export class Level extends Component {
 
     componentDidMount() {
         this.get();
+        const newConnection = new HubConnectionBuilder()
+            // .withUrl(config.HUB_URL + 'hubs/realtimehub', { transport: HttpTransportType.WebSockets | HttpTransportType.LongPolling })
+            .withUrl(config.HUB_URL + 'hubs/realtimehub', {
+                skipNegotiation: true,
+                transport: HttpTransportType.WebSockets,
+            })
+            .configureLogging(LogLevel.Information)
+            .withAutomaticReconnect()
+            .build();
+        this.setState({
+            connection: newConnection,
+            senderUserId: newConnection.connectionId,
+        });
+        newConnection.start()
+            .then(result => {
+                this.state.connection.on('Message', message => {
+                    console.log(message);
+                });
+                this.state.connection.on('SendToAll', entites => {
+                    let levels = this.state.levels;
+                    levels.push(entites);
+                    this.setState({
+                        levels: levels
+                    });
+                });
+                this.state.connection.on('UpdateToAll', entites => {
+                    let levels = this.state.levels;
+                    const updatedIndexEntity = levels.findIndex(
+                        (level) => level.id === entites.id
+                    );
+                    if (updatedIndexEntity !== -1) levels[updatedIndexEntity] = entites;
+                    this.setState({
+                        levels: levels
+                    });
+                });
+                this.state.connection.on('DeleteToAll', index => {
+                    let levels = this.state.levels;
+                    levels.splice(index, 1);
+                    this.setState({
+                        levels: levels
+                    });
+                });
+            })
+            .catch(e => console.log('Connection failed: ', e));
     }
 
     filterTableByAll = (e) => {
@@ -122,7 +169,18 @@ export class Level extends Component {
         LevelService.Add(this.state.level)
             .then((result) => {
                 // this.state.levels.push(result.data.Entity);
-                this.get();
+                // this.get();
+                if (this.state.connection.state === "Connected") {
+                    try {
+                        this.state.connection.send("SendToAll", result.data.Entity);
+                    }
+                    catch (e) {
+                        console.log(e);
+                    }
+                }
+                else {
+                    console.log("No connection to server yet.");
+                }
                 this.setState({
                     showModal: false
                 });
@@ -161,7 +219,18 @@ export class Level extends Component {
             .then((result) => {
                 // let levelsClone = this.state.levels;
                 // levelsClone[this.state.selectedIndexLevel] = result.data.Entity;
-                this.get();
+                // this.get();
+                if (this.state.connection.state === "Connected") {
+                    try {
+                        this.state.connection.invoke("UpdateToAll", result.data.Entity);
+                    }
+                    catch (e) {
+                        console.log(e);
+                    }
+                }
+                else {
+                    console.log("No connection to server yet.");
+                }
                 this.setState({
                     // levels: levelsClone,
                     showModal: false
@@ -186,7 +255,15 @@ export class Level extends Component {
                     // this.setState({
                     //     levels: levelsClone
                     // });
-                    this.get();
+                    // this.get();
+                    if (this.state.connection.state === "Connected") {
+                        try {
+                            this.state.connection.invoke("DeleteToAll", selectedLevel);
+                        }
+                        catch (e) {
+                            console.log(e);
+                        }
+                    }
                     alert(result.data.Message);
                 },
                     (error) => {

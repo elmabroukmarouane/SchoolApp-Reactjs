@@ -29,11 +29,19 @@ class AuthenticationService {
     //         });
     // }
 
-    logout() {
-        localStorage.removeItem('token');
-        // localStorage.removeItem('email');
-        // localStorage.removeItem('password');
-        localStorage.removeItem('user');
+    logout(id) {
+        return http.get("Authentication/Logout", {
+            params: {
+                id: id
+            }
+        })
+            .then(result => {
+                localStorage.removeItem('token');
+                // localStorage.removeItem('email');
+                // localStorage.removeItem('password');
+                localStorage.removeItem('user');
+                return result.data;
+            });
     }
 
     // encryptPassword(password) {
